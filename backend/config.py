@@ -24,20 +24,28 @@ class Config:
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(seconds=int(os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', 2592000)))
     
     # Configuration base de données - PostgreSQL par défaut
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
+    _raw_db_url = os.environ.get(
         'DATABASE_URL',
         'postgresql://olympiades_user:olympiades_pass@localhost:5432/olympiades_ia_dev'
     )
+    # Render fournit postgres:// mais SQLAlchemy 2.x exige postgresql://
+    if _raw_db_url.startswith('postgres://'):
+        _raw_db_url = _raw_db_url.replace('postgres://', 'postgresql://', 1)
+    SQLALCHEMY_DATABASE_URI = _raw_db_url
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     
-    # Pool de connexions DB — critique sous charge
+    # Pool de connexions DB — critique sous charge et pour SSL Render
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': int(os.environ.get('DB_POOL_SIZE', 10)),
-        'max_overflow': int(os.environ.get('DB_MAX_OVERFLOW', 20)),
-        'pool_recycle': 300,   # Recycler les connexions toutes les 5 min
-        'pool_pre_ping': True, # Vérifier que la connexion est vivante avant de l'utiliser
-        'pool_timeout': 30,    # Timeout si le pool est plein
+        'pool_size': int(os.environ.get('DB_POOL_SIZE', 5)),
+        'max_overflow': int(os.environ.get('DB_MAX_OVERFLOW', 10)),
+        'pool_recycle': 120,   # Recycler toutes les 2 min (évite SSL stale)
+        'pool_pre_ping': True, # Vérifier que la connexion est vivante avant usage
+        'pool_timeout': 30,
+        'connect_args': {
+            'sslmode': 'require',   # Render PostgreSQL exige SSL
+        } if os.environ.get('FLASK_ENV') == 'production' else {},
     }
     
     # Configuration CORS - IMPORTANT pour le déploiement
