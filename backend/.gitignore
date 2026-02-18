@@ -1,0 +1,38 @@
+# Environnement
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtualenv
+venv/
+.venv/
+env/
+
+# Instance (SQLite local)
+instance/
+
+# Uploads (fichiers utilisateurs)
+uploads/photos/*
+uploads/bulletins/*
+!uploads/photos/.gitkeep
+!uploads/bulletins/.gitkeep
+!uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
